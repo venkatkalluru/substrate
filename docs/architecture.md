@@ -270,7 +270,7 @@ multiplicities (UML class diagram):
 
 ```mermaid
 classDiagram
-    namespace KubernetesObjects {
+    namespace kube-apiserver {
         class ActorTemplate {
             <<CRD>>
         }
@@ -284,7 +284,7 @@ classDiagram
         }
     }
 
-    namespace ControlPlaneRecords {
+    namespace ate-api-server {
         class Actor {
             <<record>>
             status
