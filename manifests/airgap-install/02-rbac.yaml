@@ -1,0 +1,268 @@
+# ate-controller ClusterRole (from generated/role.yaml)
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ate-controller
+rules:
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+- apiGroups: ["ate.dev"]
+  resources: ["actortemplates", "workerpools"]
+  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+- apiGroups: ["ate.dev"]
+  resources: ["actortemplates/finalizers", "workerpools/finalizers"]
+  verbs: ["update"]
+- apiGroups: ["ate.dev"]
+  resources: ["actortemplates/status", "workerpools/status"]
+  verbs: ["get", "patch", "update"]
+
+# ate-api-server
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ate-api-server-role
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "watch", "list"]
+- apiGroups: ["ate.dev"]
+  resources: ["actortemplates", "workerpools", "sandboxconfigs"]
+  verbs: ["get", "watch", "list"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ate-api-server
+  namespace: ate-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ate-api-server-binding
+subjects:
+- kind: ServiceAccount
+  name: ate-api-server
+  namespace: ate-system
+roleRef:
+  kind: ClusterRole
+  name: ate-api-server-role
+  apiGroup: rbac.authorization.k8s.io
+
+# ate-controller
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ate-controller
+  namespace: ate-system
+  labels:
+    apps: ate-controller
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ate-controller
+subjects:
+- kind: ServiceAccount
+  name: ate-controller
+  namespace: ate-system
+roleRef:
+  kind: ClusterRole
+  name: ate-controller
+  apiGroup: rbac.authorization.k8s.io
+
+# atelet
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: atelet
+  namespace: ate-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: atelet-role
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: atelet-binding
+subjects:
+- kind: ServiceAccount
+  name: atelet
+  namespace: ate-system
+roleRef:
+  kind: ClusterRole
+  name: atelet-role
+  apiGroup: rbac.authorization.k8s.io
+
+# atenet-router
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: atenet-router
+  namespace: ate-system
+  labels:
+    app: atenet-router
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: atenet-router
+rules:
+- apiGroups: ["ate.dev"]
+  resources: ["actortemplates"]
+  verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: atenet-router
+subjects:
+- kind: ServiceAccount
+  name: atenet-router
+  namespace: ate-system
+roleRef:
+  kind: ClusterRole
+  name: atenet-router
+  apiGroup: rbac.authorization.k8s.io
+
+# atenet-dns
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: atenet-dns
+  namespace: ate-system
+  labels:
+    app: dns
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: atenet-dns
+  namespace: ate-system
+rules:
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch", "create", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: atenet-dns
+  namespace: ate-system
+subjects:
+- kind: ServiceAccount
+  name: atenet-dns
+  namespace: ate-system
+roleRef:
+  kind: Role
+  name: atenet-dns
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: atenet-dns
+  namespace: kube-system
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch", "create", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: atenet-dns
+  namespace: kube-system
+subjects:
+- kind: ServiceAccount
+  name: atenet-dns
+  namespace: ate-system
+roleRef:
+  kind: Role
+  name: atenet-dns
+  apiGroup: rbac.authorization.k8s.io
+
+# podcertificate-controller
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: podcert-ate-dev-signer
+rules:
+- apiGroups: [""]
+  resources: ["services", "pods"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["certificates.k8s.io"]
+  resources: ["podcertificaterequests"]
+  verbs: ["get", "list", "watch", "update"]
+- apiGroups: ["certificates.k8s.io"]
+  resources: ["clustertrustbundles"]
+  verbs: ["create", "get", "list", "watch", "update", "delete"]
+- apiGroups: ["certificates.k8s.io"]
+  resources: ["podcertificaterequests/status"]
+  verbs: ["update"]
+- apiGroups: ["certificates.k8s.io"]
+  resources: ["signers"]
+  resourceNames: ["servicedns.podcert.ate.dev/*", "podidentity.podcert.ate.dev/*"]
+  verbs: ["sign", "attest"]
+- apiGroups: ["events.k8s.io"]
+  resources: ["events"]
+  verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: podcert-ate-dev-signer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: podcert-ate-dev-signer
+subjects:
+- kind: ServiceAccount
+  namespace: podcertificate-controller-system
+  name: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: podcertificate-controller-system
+  name: coordinator
+rules:
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  verbs: ["create", "get", "list", "watch", "update", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: podcertificate-controller-is-a-coordinator
+  namespace: podcertificate-controller-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: coordinator
+subjects:
+- kind: ServiceAccount
+  namespace: podcertificate-controller-system
+  name: default

@@ -1,0 +1,14 @@
+# ateom-gvisor is the actor object manager image referenced in WorkerPool.spec.ateomImage.
+# Users create WorkerPools with this image to run sandboxed workloads.
+FROM golang:1.26 AS builder
+WORKDIR /workspace
+COPY . .
+ARG VERSION=dev
+RUN CGO_ENABLED=0 GOOS=linux go build \
+    -ldflags "-X github.com/agent-substrate/substrate/internal/version.Version=${VERSION}" \
+    -o /ateom-gvisor \
+    ./cmd/ateom-gvisor
+
+FROM gcr.io/distroless/static-debian13
+COPY --from=builder /ateom-gvisor /ateom-gvisor
+ENTRYPOINT ["/ateom-gvisor"]

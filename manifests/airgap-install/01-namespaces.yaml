@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ate-system
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: podcertificate-controller-system

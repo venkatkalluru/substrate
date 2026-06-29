@@ -1,0 +1,122 @@
+# RustFS: S3-compatible object store used by atelet for actor snapshots.
+# If you already have an internal S3-compatible store (MinIO, etc.), you can
+# skip this file and configure atelet in 12-atelet.yaml to point to it instead.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rustfs-data
+  namespace: ate-system
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rustfs
+  namespace: ate-system
+spec:
+  selector:
+    app: rustfs
+  ports:
+  - name: api
+    port: 9000
+    targetPort: 9000
+  - name: console
+    port: 9001
+    targetPort: 9001
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rustfs
+  namespace: ate-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rustfs
+  template:
+    metadata:
+      labels:
+        app: rustfs
+    spec:
+      securityContext:
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+      - name: rustfs
+        image: REPLACE_REGISTRY/rustfs:1.0.0-beta.3
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9000
+          name: api
+        - containerPort: 9001
+          name: console
+        env:
+        - name: RUSTFS_ADDRESS
+          value: ":9000"
+        - name: RUSTFS_CONSOLE_ADDRESS
+          value: ":9001"
+        - name: RUSTFS_CONSOLE_ENABLE
+          value: "true"
+        - name: RUSTFS_VOLUMES
+          value: "/data"
+        - name: RUSTFS_ACCESS_KEY
+          value: "rustfsadmin"
+        - name: RUSTFS_SECRET_KEY
+          value: "rustfsadmin"
+        volumeMounts:
+        - name: data
+          mountPath: /data
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: rustfs-data
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rustfs-bucket-init
+  namespace: ate-system
+spec:
+  backoffLimit: 10
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: create-bucket
+        image: REPLACE_REGISTRY/aws-cli:2.17.0
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          value: rustfsadmin
+        - name: AWS_SECRET_ACCESS_KEY
+          value: rustfsadmin
+        - name: AWS_REGION
+          value: us-east-1
+        - name: AWS_ENDPOINT_URL
+          value: http://rustfs.ate-system.svc:9000
+        command:
+        - /bin/sh
+        - -c
+        - |
+          set -e
+          for i in $(seq 1 60); do
+            if aws s3api head-bucket --bucket ate-snapshots 2>/dev/null; then
+              echo "bucket ate-snapshots already exists"
+              exit 0
+            fi
+            if aws s3api create-bucket --bucket ate-snapshots 2>/dev/null; then
+              echo "bucket ate-snapshots created"
+              exit 0
+            fi
+            echo "waiting for rustfs... ($i/60)"
+            sleep 2
+          done
+          echo "timed out waiting for rustfs"
+          exit 1

@@ -1,0 +1,12 @@
+FROM golang:1.26 AS builder
+WORKDIR /workspace
+COPY . .
+ARG VERSION=dev
+RUN CGO_ENABLED=0 GOOS=linux go build \
+    -ldflags "-X github.com/agent-substrate/substrate/internal/version.Version=${VERSION}" \
+    -o /ateapi \
+    ./cmd/ateapi
+
+FROM gcr.io/distroless/static-debian13
+COPY --from=builder /ateapi /ateapi
+ENTRYPOINT ["/ateapi"]

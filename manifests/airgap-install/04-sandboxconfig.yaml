@@ -1,0 +1,31 @@
+# gVisor SandboxConfig — cluster-wide default for the gvisor sandbox class.
+#
+# IMPORTANT (air-gapped setup):
+#   The 'url' fields below point to internal HTTP/S3 storage where you must
+#   pre-stage the gVisor 'runsc' binaries.  Download them from:
+#     https://gvisor.dev/releases/  (or gs://gvisor/releases/release/20260622/...)
+#   then host them on your internal object store / HTTP server and update the
+#   URLs and sha256 values (sha256 must match the actual binary).
+#
+#   REPLACE_GVISOR_AMD64_URL    — URL for the amd64 runsc binary
+#   REPLACE_GVISOR_AMD64_SHA256 — sha256 of the amd64 runsc binary
+#   REPLACE_GVISOR_ARM64_URL    — URL for the arm64 runsc binary
+#   REPLACE_GVISOR_ARM64_SHA256 — sha256 of the arm64 runsc binary
+#
+#   After running render.sh these placeholders are substituted automatically.
+apiVersion: ate.dev/v1alpha1
+kind: SandboxConfig
+metadata:
+  name: gvisor-default
+spec:
+  sandboxClass: gvisor
+  default: true
+  assets:
+    amd64:
+      runsc:
+        url: "REPLACE_GVISOR_AMD64_URL"
+        sha256: "REPLACE_GVISOR_AMD64_SHA256"
+    arm64:
+      runsc:
+        url: "REPLACE_GVISOR_ARM64_URL"
+        sha256: "REPLACE_GVISOR_ARM64_SHA256"

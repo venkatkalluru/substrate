@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: atelet
+  namespace: ate-system
+  labels:
+    app: atelet
+spec:
+  selector:
+    matchLabels:
+      app: atelet
+  template:
+    metadata:
+      labels:
+        app: atelet
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      serviceAccountName: atelet
+      containers:
+      - name: atelet
+        image: REPLACE_REGISTRY/substrate-atelet:REPLACE_IMAGE_TAG
+        args:
+        # Disable GCP-specific auth; use private registry directly
+        - --gcp-auth-for-image-pulls=false
+        securityContext:
+          privileged: true
+        env:
+        - name: MY_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_UID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.uid
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: k8s.namespace.name=$(POD_NAMESPACE),k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),service.instance.id=$(POD_UID)
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: REPLACE_OTEL_ENDPOINT
+        # Use RustFS (S3) as the snapshot storage backend
+        - name: ATE_STORAGE_BACKEND
+          value: s3
+        - name: AWS_REGION
+          value: us-east-1
+        - name: AWS_ENDPOINT_URL
+          value: http://rustfs.ate-system.svc:9000
+        - name: AWS_S3_USE_PATH_STYLE
+          value: "true"
+        - name: AWS_ACCESS_KEY_ID
+          value: rustfsadmin
+        - name: AWS_SECRET_ACCESS_KEY
+          value: rustfsadmin
+        ports:
+        - name: grpc
+          containerPort: 8085
+          hostPort: 8085
+        - name: prometheus
+          containerPort: 9090
+          hostPort: 9090
+          protocol: TCP
+        volumeMounts:
+        - name: run-ateom
+          mountPath: /var/lib/ateom-gvisor
+      volumes:
+      - name: run-ateom
+        hostPath:
+          path: /var/lib/ateom-gvisor
+          type: DirectoryOrCreate

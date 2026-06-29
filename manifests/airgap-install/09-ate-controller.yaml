@@ -1,0 +1,42 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: ate-controller
+  namespace: ate-system
+  labels:
+    app: ate-controller
+spec:
+  selector:
+    app: ate-controller
+  ports:
+  - name: metrics
+    port: 8080
+    targetPort: metrics
+    protocol: TCP
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: ate-controller
+  namespace: ate-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ate-controller
+  template:
+    metadata:
+      labels:
+        app: ate-controller
+    spec:
+      serviceAccountName: ate-controller
+      containers:
+      - name: ate-controller
+        image: REPLACE_REGISTRY/substrate-atecontroller:REPLACE_IMAGE_TAG
+        ports:
+        - name: metrics
+          containerPort: 8080
+          protocol: TCP
+        - name: healthz
+          containerPort: 8081
+          protocol: TCP
