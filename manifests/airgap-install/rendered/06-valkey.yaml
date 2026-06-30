@@ -73,7 +73,7 @@ spec:
         kubernetes.io/os: linux
       containers:
       - name: valkey
-        image: REPLACE_REGISTRY/valkey:9.1
+        image: docker-dev-artifactory.workday.com/venkatkalluru/substrate/valkey:9.1
         command:
         - /bin/sh
         - -c
@@ -149,7 +149,7 @@ spec:
       restartPolicy: OnFailure
       containers:
       - name: init
-        image: REPLACE_REGISTRY/valkey:9.1
+        image: docker-dev-artifactory.workday.com/venkatkalluru/substrate/valkey:9.1
         volumeMounts:
         - name: servicedns
           mountPath: /run/servicedns.podcert.ate.dev

@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: controller
-        image: REPLACE_REGISTRY/substrate-podcertcontroller:REPLACE_IMAGE_TAG
+        image: docker-dev-artifactory.workday.com/venkatkalluru/substrate/substrate-podcertcontroller:v0.1.1
         args:
         - --in-cluster=true
         - --sharding-pod-namespace=$(POD_NAMESPACE)

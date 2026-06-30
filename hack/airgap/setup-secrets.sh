@@ -62,19 +62,19 @@ echo "    ClusterTrustBundles ready."
 
 echo ""
 echo "==> Creating JWT authority pool secret..."
-run_kubectl get secret -n ate-system session-id-jwt-pool >/dev/null 2>&1 || \
+run_kubectl get secret -n acr-substrate session-id-jwt-pool >/dev/null 2>&1 || \
   run_kubectl_ate admin make-jwt-pool \
     --key-id="1" \
     --name="session-id-jwt-pool" \
-    --secret-namespace=ate-system
+    --secret-namespace=acr-substrate
 
 echo ""
 echo "==> Creating session ID CA pool secret..."
-run_kubectl get secret -n ate-system session-id-ca-pool >/dev/null 2>&1 || \
+run_kubectl get secret -n acr-substrate session-id-ca-pool >/dev/null 2>&1 || \
   run_kubectl_ate admin make-ca-pool \
     --ca-id="1" \
     --name="session-id-ca-pool" \
-    --secret-namespace=ate-system
+    --secret-namespace=acr-substrate
 
 echo ""
 echo "==> Creating podcertificate controller CA pools..."
@@ -97,7 +97,7 @@ run_kubectl get secret -n podcertificate-controller-system pod-identity-ca-pool 
 
 echo ""
 echo "==> Creating Valkey CA certs secret..."
-if ! run_kubectl get secret -n ate-system valkey-ca-certs >/dev/null 2>&1; then
+if ! run_kubectl get secret -n acr-substrate valkey-ca-certs >/dev/null 2>&1; then
   pool_json=$(run_kubectl get secret -n podcertificate-controller-system service-dns-ca-pool \
     -o jsonpath='{.data.pool}' | base64 --decode)
   der_base64=$(echo "${pool_json}" | grep -o '"RootCertificateDER":"[^"]*' | \
@@ -106,24 +106,24 @@ if ! run_kubectl get secret -n ate-system valkey-ca-certs >/dev/null 2>&1; then
 
   run_kubectl create secret generic valkey-ca-certs \
     --from-literal=ca.crt="${ca_certs}" \
-    -n ate-system \
+    -n acr-substrate \
     --dry-run=client -o yaml \
     | run_kubectl apply -f -
 fi
 
 echo ""
 echo "==> Creating ate-api-server-envvars ConfigMap..."
-if ! run_kubectl get configmap -n ate-system ate-api-server-envvars >/dev/null 2>&1; then
+if ! run_kubectl get configmap -n acr-substrate ate-api-server-envvars >/dev/null 2>&1; then
   jwt_issuer=$(run_kubectl get --raw /.well-known/openid-configuration 2>/dev/null \
     | grep -o '"issuer":"[^"]*' | sed 's/"issuer":"//' || true)
   if [[ -z "${jwt_issuer}" ]]; then
     jwt_issuer="https://kubernetes.default.svc"
   fi
 
-  run_kubectl create configmap -n ate-system ate-api-server-envvars \
-    --from-literal=ATE_API_REDIS_ADDRESS="valkey-cluster.ate-system.svc:6379" \
+  run_kubectl create configmap -n acr-substrate ate-api-server-envvars \
+    --from-literal=ATE_API_REDIS_ADDRESS="valkey-cluster.acr-substrate.svc:6379" \
     --from-literal=ATE_API_REDIS_USE_IAM_AUTH="false" \
-    --from-literal=ATE_API_REDIS_TLS_SERVER_NAME="valkey-cluster.ate-system.svc" \
+    --from-literal=ATE_API_REDIS_TLS_SERVER_NAME="valkey-cluster.acr-substrate.svc" \
     --from-literal=ATE_API_REDIS_CLIENT_CERT="/run/servicedns.podcert.ate.dev/credential-bundle.pem" \
     --from-literal=ATE_API_K8SJWT_ISSUER="${jwt_issuer}" \
     --dry-run=client -o yaml \

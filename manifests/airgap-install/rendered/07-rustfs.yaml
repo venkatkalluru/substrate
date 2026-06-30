@@ -55,7 +55,7 @@ spec:
         fsGroup: 10001
       containers:
       - name: rustfs
-        image: REPLACE_REGISTRY/rustfs:1.0.0-beta.3
+        image: docker-dev-artifactory.workday.com/venkatkalluru/substrate/rustfs:1.0.0-beta.3
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9000
@@ -100,7 +100,7 @@ spec:
       restartPolicy: OnFailure
       containers:
       - name: create-bucket
-        image: REPLACE_REGISTRY/aws-cli:2.17.0
+        image: docker-dev-artifactory.workday.com/venkatkalluru/substrate/aws-cli:2.17.0
         env:
         - name: AWS_ACCESS_KEY_ID
           value: rustfsadmin

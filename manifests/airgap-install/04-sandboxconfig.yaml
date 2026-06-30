@@ -1,18 +1,16 @@
-# gVisor SandboxConfig — cluster-wide default for the gvisor sandbox class.
+# SandboxConfig for gVisor — SKIP THIS FILE if gVisor (runsc) is not enabled on
+# your cluster nodes.  The substrate system components (ateapi, atelet, atenet,
+# etc.) deploy and run fine without it; only actor workloads using
+# sandboxClass: gvisor need this config applied.
 #
-# IMPORTANT (air-gapped setup):
-#   The 'url' fields below point to internal HTTP/S3 storage where you must
-#   pre-stage the gVisor 'runsc' binaries.  Download them from:
-#     https://gvisor.dev/releases/  (or gs://gvisor/releases/release/20260622/...)
-#   then host them on your internal object store / HTTP server and update the
-#   URLs and sha256 values (sha256 must match the actual binary).
+# To apply (only when gVisor IS enabled on nodes):
+#   1. Host the runsc binaries on your internal HTTP/S3 store.
+#   2. Pass the URLs + sha256 hashes to render.sh via --gvisor-* flags.
+#   3. kubectl apply -f manifests/airgap-install/rendered/04-sandboxconfig.yaml
 #
-#   REPLACE_GVISOR_AMD64_URL    — URL for the amd64 runsc binary
-#   REPLACE_GVISOR_AMD64_SHA256 — sha256 of the amd64 runsc binary
-#   REPLACE_GVISOR_ARM64_URL    — URL for the arm64 runsc binary
-#   REPLACE_GVISOR_ARM64_SHA256 — sha256 of the arm64 runsc binary
-#
-#   After running render.sh these placeholders are substituted automatically.
+# For prototyping with runc/regular containers: do NOT apply this file.
+# WorkerPools that reference sandboxClass: gvisor will remain non-functional
+# until gVisor is enabled and this SandboxConfig is applied.
 apiVersion: ate.dev/v1alpha1
 kind: SandboxConfig
 metadata:

@@ -76,7 +76,7 @@ spec:
         kubernetes.io/os: linux
       containers:
       - name: atenet-router
-        image: REPLACE_REGISTRY/substrate-atenet:REPLACE_IMAGE_TAG
+        image: docker-dev-artifactory.workday.com/venkatkalluru/substrate/substrate-atenet:v0.1.1
         args:
         - "router"
         - "--standalone"
@@ -106,7 +106,7 @@ spec:
         - name: OTEL_RESOURCE_ATTRIBUTES
           value: k8s.namespace.name=$(POD_NAMESPACE),k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),service.instance.id=$(POD_UID)
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
-          value: REPLACE_OTEL_ENDPOINT
+          value: http://opentelemetry-collector.monitoring.svc.cluster.local:4317
         ports:
         - name: xds
           containerPort: 18000
@@ -117,7 +117,7 @@ spec:
         - name: metrics
           containerPort: 9090
       - name: envoy
-        image: REPLACE_REGISTRY/envoy:v1.30
+        image: docker-dev-artifactory.workday.com/venkatkalluru/substrate/envoy:v1.30
         command:
         - "/usr/local/bin/envoy"
         - "-c"
