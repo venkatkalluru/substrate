@@ -10,7 +10,7 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: podcertificate-controller-system
+  name: acr-substrate-podcert-ctrl-system
   labels:
     istio-injection: disabled
   annotations:

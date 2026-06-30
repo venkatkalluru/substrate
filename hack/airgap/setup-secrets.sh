@@ -44,7 +44,7 @@ echo "    Built: bin/kubectl-ate"
 echo ""
 echo "==> Waiting for podcertificate-controller to be ready..."
 run_kubectl rollout status deployment/podcertificate-controller \
-  -n podcertificate-controller-system --timeout=120s
+  -n acr-substrate-podcert-ctrl-system --timeout=120s
 
 echo ""
 echo "==> Waiting for ClusterTrustBundles to be created..."
@@ -78,27 +78,27 @@ run_kubectl get secret -n acr-substrate session-id-ca-pool >/dev/null 2>&1 || \
 
 echo ""
 echo "==> Creating podcertificate controller CA pools..."
-run_kubectl create namespace podcertificate-controller-system \
+run_kubectl create namespace acr-substrate-podcert-ctrl-system \
     --dry-run=client -o yaml | run_kubectl apply -f -
 
-run_kubectl get secret -n podcertificate-controller-system service-dns-ca-pool \
+run_kubectl get secret -n acr-substrate-podcert-ctrl-system service-dns-ca-pool \
     >/dev/null 2>&1 || \
   run_kubectl_ate admin make-ca-pool \
     --ca-id="1" \
     --name="service-dns-ca-pool" \
-    --secret-namespace=podcertificate-controller-system
+    --secret-namespace=acr-substrate-podcert-ctrl-system
 
-run_kubectl get secret -n podcertificate-controller-system pod-identity-ca-pool \
+run_kubectl get secret -n acr-substrate-podcert-ctrl-system pod-identity-ca-pool \
     >/dev/null 2>&1 || \
   run_kubectl_ate admin make-ca-pool \
     --ca-id="1" \
     --name="pod-identity-ca-pool" \
-    --secret-namespace=podcertificate-controller-system
+    --secret-namespace=acr-substrate-podcert-ctrl-system
 
 echo ""
 echo "==> Creating Valkey CA certs secret..."
 if ! run_kubectl get secret -n acr-substrate valkey-ca-certs >/dev/null 2>&1; then
-  pool_json=$(run_kubectl get secret -n podcertificate-controller-system service-dns-ca-pool \
+  pool_json=$(run_kubectl get secret -n acr-substrate-podcert-ctrl-system service-dns-ca-pool \
     -o jsonpath='{.data.pool}' | base64 --decode)
   der_base64=$(echo "${pool_json}" | grep -o '"RootCertificateDER":"[^"]*' | \
     sed 's/"RootCertificateDER":"//')

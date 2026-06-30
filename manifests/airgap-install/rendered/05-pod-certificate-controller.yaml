@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: podcertificate-controller
-  namespace: podcertificate-controller-system
+  namespace: acr-substrate-podcert-ctrl-system
   labels:
     app: podcertificate-controller
 spec:

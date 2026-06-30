@@ -119,7 +119,7 @@ fi
 echo "  # Step 2: Pod certificate controller (must come before secrets)"
 echo "  kubectl apply -f ${OUT}/05-pod-certificate-controller.yaml"
 echo "  kubectl rollout status deployment/podcertificate-controller \\"
-echo "    -n podcertificate-controller-system --timeout=120s"
+echo "    -n acr-substrate-podcert-ctrl-system --timeout=120s"
 echo ""
 echo "  # Step 3: Create required secrets and ConfigMaps"
 echo "  ./hack/airgap/setup-secrets.sh"
